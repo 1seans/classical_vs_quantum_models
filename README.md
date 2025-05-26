@@ -2,7 +2,9 @@
 
 A Streamlit-based web app comparing classical Geometric Brownian Motion (GBM) and Quantum Stochastic Differential Equation (QSDE) models for European option pricing. Integrates real-time market data, quantum-generated randomness, and interactive 3D visualization to explore volatility, profit/loss, and model accuracy.
 
+**Live App:** https://classicalvsquantummodels-lzxa5schzvrb7tufdtdwht.streamlit.app/
 
+---
 
 ## Overview
 
