@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from qiskit import QuantumCircuit, transpile
-from qiskit_aer import AerSimulator
+from qiskit_aer import AerSimulator, Aer
 from utils_plotly import create_3d_surface
 import plotly.express as px
 import plotly.graph_objects as go
