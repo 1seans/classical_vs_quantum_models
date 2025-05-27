@@ -1,5 +1,3 @@
-# qsde.py
-
 import os
 import numpy as np
 from qiskit import QuantumCircuit, transpile
