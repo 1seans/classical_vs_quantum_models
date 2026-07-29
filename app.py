@@ -116,7 +116,7 @@ q = st.sidebar.slider("Dividend yield q", 0.0, 0.1, 0.0, 0.005)
 
 page = st.sidebar.radio("Page", [
     "Overview", "Volatility Surfaces", "Monte Carlo vs Closed-Form",
-    "Quantum: QAE vs MC", "Greeks Explorer",
+    "Quantum: QAE vs MC", "Greeks Explorer", "The Verdict",
 ])
 
 
@@ -187,10 +187,18 @@ elif page == "Volatility Surfaces":
                         "Black-Scholes Call", "σ", "T", "Call price"), use_container_width=True)
     with c2:
         st.markdown("### Heston surface")
-        st.caption("Stochastic volatility · Monte Carlo · real sampling texture")
-        hs = _load("heston_surface")
+        budget = st.radio("Simulation budget", ["Few sims (spiky)", "Many sims (smooth)"],
+                          index=1, horizontal=True)
+        hs = _load("heston_surface_noisy" if budget.startswith("Few") else "heston_surface")
         st.plotly_chart(viz.surface(hs["vol_range"], hs["T_range"], hs["Z"],
                         "Heston Call", "σ (initial)", "T", "Call price"), use_container_width=True)
+        if budget.startswith("Few"):
+            st.caption("⚠️ Those spikes aren't the model — they're **Monte Carlo noise** from too few "
+                       "simulations (~90 per point). It's the *same* surface as 'smooth', just a rough "
+                       "estimate. Reducing that noise faster is exactly what the quantum method does.")
+        else:
+            st.caption("15,000 simulations per point — the noise averages out and the *true* stochastic-vol "
+                       "surface appears. Flip to 'Few sims' to see the noise it's hiding.")
 
     st.markdown("### The volatility smile")
     preset = st.selectbox("Market regime", ["calm", "stressed", "crash"])
@@ -302,6 +310,54 @@ elif page == "Greeks Explorer":
     cols = st.columns(5)
     for col, name in zip(cols, ["delta", "gamma", "vega", "theta", "rho"]):
         col.metric(name.capitalize(), f"{a[name]:.4f}", f"FD {fd[name]:.4f}", delta_color="off")
+
+elif page == "The Verdict":
+    st.subheader("So… which one is better?")
+    explain(
+        "Short version: there's no single winner — it depends on whether you care about the *model* "
+        "(how you describe the market) or the *method* (how you crunch the numbers). Below is the "
+        "honest bottom line on each, in plain English."
+    )
+
+    v1, v2 = st.columns(2)
+    with v1:
+        st.markdown("### 🧮 Which model?")
+        st.markdown(
+            "**Black-Scholes**\n"
+            "- ✅ Instant — an exact formula, no simulation\n"
+            "- ✅ The baseline every trader knows\n"
+            "- ❌ Assumes volatility never changes → misprices crashes and far-out bets\n\n"
+            "**Heston**\n"
+            "- ✅ Volatility itself moves → reproduces the real 'smile'\n"
+            "- ✅ Much closer to how markets actually behave\n"
+            "- ❌ No neat formula — needs Monte Carlo simulation"
+        )
+        st.success("**Verdict:** Heston is the more honest model; Black-Scholes is the fast back-of-envelope you start from.")
+    with v2:
+        st.markdown("### ⚙️ Which method?")
+        st.markdown(
+            "**Monte Carlo (classical)**\n"
+            "- ✅ Runs on any laptop, today\n"
+            "- ✅ Simple and battle-tested\n"
+            "- ❌ Error only shrinks like 1/√N → **100× the work for 10× the accuracy**\n\n"
+            "**Quantum Amplitude Estimation**\n"
+            "- ✅ Error shrinks like 1/N → **only 10× the work for 10× the accuracy**\n"
+            "- ❌ Needs a real quantum computer\n"
+            "- ❌ Slower in wall-clock on today's simulators"
+        )
+        st.success("**Verdict:** Classical wins *today*; quantum wins *on paper* — and, once hardware matures, in practice too.")
+
+    st.markdown("### The bottom line")
+    st.markdown(
+        "| Question | Best answer |\n"
+        "|---|---|\n"
+        "| Most realistic model? | **Heston** (captures the smile) |\n"
+        "| Best method you can run right now? | **Monte Carlo** (works on any laptop) |\n"
+        "| Best method on paper / the long-term bet? | **Quantum Amplitude Estimation** (error falls twice as fast) |\n"
+        "| Fastest rough answer? | **Black-Scholes** (an exact formula) |"
+    )
+    st.info("This site is a bet on that last row: as quantum hardware matures, the O(1/N) advantage "
+            "stops being theoretical. For now, the classical tools do the real work — and QAE is the direction of travel.")
 
 st.markdown('<div class="q-foot">Quantum Option Lab · Black-Scholes · Heston · Quantum Amplitude Estimation</div>',
             unsafe_allow_html=True)

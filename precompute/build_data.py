@@ -43,6 +43,24 @@ def build_heston_surface(S0=100, r=0.02, q=0.0, out_dir="data"):
     np.savez(os.path.join(out_dir, "heston_surface.npz"), vol_range=vol_range, T_range=T_range, Z=Z)
 
 
+def build_heston_surface_noisy(S0=100, r=0.02, q=0.0, out_dir="data"):
+    # Same Heston surface, but with a tiny simulation budget so Monte Carlo
+    # sampling noise dominates -> dramatic spikes. Independent draw per cell
+    # (seed varies) so the noise is uncorrelated and jagged. This is the SAME
+    # true surface as the smooth one; the spikes are pure estimation error.
+    vol_range = np.linspace(0.1, 0.6, 24)
+    T_range = np.linspace(0.15, 1.0, 24)
+    Z = np.zeros((len(T_range), len(vol_range)))
+    for i, t in enumerate(T_range):
+        for j, s in enumerate(vol_range):
+            params = heston.HestonParams(kappa=2.0, theta=s**2, xi=0.5, rho=-0.6, v0=s**2)
+            Z[i, j] = heston.price(S0, S0, t, r, params, q=q,
+                                   n_sims=90, n_steps=40, seed=i * 1000 + j)["price"]
+    os.makedirs(out_dir, exist_ok=True)
+    np.savez(os.path.join(out_dir, "heston_surface_noisy.npz"),
+             vol_range=vol_range, T_range=T_range, Z=Z)
+
+
 def build_qae_convergence(out_dir="data"):
     from quantum import qae_pricing  # lazy: keeps qiskit out of app startup
     res = qae_pricing.convergence_vs_mc(2.0, 1.9, 40 / 365, 0.05, 0.4, num_qubits=3)
@@ -56,6 +74,7 @@ def build_all(out_dir="data"):
     build_bs_surface(out_dir=out_dir)
     build_heston_presets(out_dir=out_dir)
     build_heston_surface(out_dir=out_dir)
+    build_heston_surface_noisy(out_dir=out_dir)
     build_qae_convergence(out_dir=out_dir)
 
 
