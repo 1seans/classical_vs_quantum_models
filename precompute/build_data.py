@@ -2,7 +2,6 @@ import os
 import numpy as np
 from models import black_scholes as bs
 from models import heston
-from quantum import qae_pricing
 
 
 def build_bs_surface(S0=100, r=0.02, q=0.0, out_dir="data"):
@@ -29,6 +28,7 @@ def build_heston_presets(S0=100, r=0.02, out_dir="data"):
 
 
 def build_qae_convergence(out_dir="data"):
+    from quantum import qae_pricing  # lazy: keeps qiskit out of app startup
     res = qae_pricing.convergence_vs_mc(2.0, 1.9, 40 / 365, 0.05, 0.4, num_qubits=3)
     os.makedirs(out_dir, exist_ok=True)
     np.savez(os.path.join(out_dir, "qae_convergence.npz"),
