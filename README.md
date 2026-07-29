@@ -1,58 +1,39 @@
-# Quantum vs Classical Option Pricing Simulator
+# Quantum Option Lab
 
-A Streamlit-based web app comparing classical Geometric Brownian Motion (GBM) and Quantum Stochastic Differential Equation (QSDE) models for European option pricing. Integrates real-time market data, quantum-generated randomness, and interactive 3D visualization to explore volatility, profit/loss, and model accuracy.
+An honest research demo comparing classical and quantum approaches to European
+option pricing.
 
 **Live App:** https://classicalvsquantummodels-lzxa5schzvrb7tufdtdwht.streamlit.app/
 
----
+## Two comparisons
 
-## Overview
+1. **Model richness** — Black-Scholes (flat volatility) vs **Heston**
+   (stochastic volatility), which reproduces the market volatility smile.
+2. **Computation** — **Monte Carlo** vs **Quantum Amplitude Estimation (QAE)**.
+   MC error scales as O(1/√N); QAE scales as O(1/N) in sample complexity.
 
-This project investigates whether quantum-enhanced stochastic models offer advantages in option pricing versus traditional methods like Black-Scholes with GBM. It simulates both models under the same conditions and provides visual insights into differences in:
+**Honest caveat:** on today's simulators QAE is *slower in wall-clock*. The
+advantage is asymptotic (fewer samples for the same accuracy), not raw speed.
 
-- Expected returns
-- Option prices
-- Model volatility
-- Profit and loss under stress
-
----
-
-## Features
-
-- **GBM vs Quantum Model** side-by-side
-- **Interactive 3D Volatility Surfaces**
-- **Monte Carlo Simulations** with configurable input
-- **Real-time stock data** via Yahoo Finance (`yfinance`)
-- **Quantum randomness injection** using Qiskit
-- **Run replay & saving system**
-- Built with:
-  - `Streamlit`, `Plotly`, `Qiskit`, `yfinance`, `numpy`, `scikit-learn`
-
----
-
-## How It Works
-
-- **Classical GBM** is simulated using the standard log-normal SDE.
-- **QSDE model** applies quantum circuits to generate bias and simulate paths with quantum drift.
-- **Monte Carlo simulations** are run for both models and visualized using `plotly`.
-- **Volatility surfaces** show how different inputs affect option prices.
-- Users can toggle between **manual inputs** or **live market data** for pricing realism.
-
----
-
-## Installation
+## Run
 
 ```bash
-# 1. Clone the repo
-git clone 
-cd
+python -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -c "from precompute import build_data; build_data.build_all()"  # bake data/
+.venv/bin/streamlit run app.py
+```
 
-# 2. Create environment
-python -m venv venv
-source venv/bin/activate  or .\venv\Scripts\activate on Windows
+## Test
 
-# 3. Install dependencies
-pip install -r requirements.txt
+```bash
+.venv/bin/pytest -v
+```
 
-# 4. Run the app
-streamlit run app.py
+## Structure
+
+- `models/` — Black-Scholes (analytic source of truth), GBM Monte Carlo, Heston.
+- `quantum/` — Quantum Amplitude Estimation pricing (Qiskit Finance).
+- `analytics/` — Greeks, experimental Heston calibration.
+- `precompute/` — bakes surfaces + QAE convergence into `data/`.
+- `viz.py` — Plotly chart builders.
+- `app.py` — multipage Streamlit UI.
