@@ -1,4 +1,16 @@
+import subprocess
+import sys
+
 from streamlit.testing.v1 import AppTest
+
+
+def test_app_startup_does_not_import_qiskit():
+    # Regression guard: qiskit must stay a lazy import (live-QAE button only).
+    # If it leaks into startup, a bad qiskit on the host takes the whole site down.
+    code = ("import sys; from precompute import build_data; import app; "
+            "assert not any(m.startswith('qiskit') for m in sys.modules), 'qiskit imported at startup'")
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
 
 
 def test_app_loads_without_exception():

@@ -115,15 +115,19 @@ elif page == "Quantum: QAE vs MC":
         {"queries": d["qae_q"], "abs_error": d["qae_err"]}), use_container_width=True)
     st.markdown("**Run a real quantum circuit** (3 qubits, ~10–30s):")
     if st.button("Run QAE live @ 3 qubits"):
-        from quantum import qae_pricing
-        with st.spinner("Executing amplitude estimation on Aer…"):
-            res = qae_pricing.price(2.0, 1.9, 40 / 365, 0.05, 0.4, num_qubits=3, epsilon=0.01)
-            exact = bs.call_price(2.0, 1.9, 40 / 365, 0.05, 0.4)
-        a, b = st.columns(2)
-        a.metric("QAE estimate", f"{res['price']:.4f}")
-        b.metric("Closed-form", f"{exact:.4f}")
-        st.caption(f"Oracle queries: {res['n_oracle_queries']} · "
-                   f"CI [{res['ci'][0]:.4f}, {res['ci'][1]:.4f}]")
+        try:
+            from quantum import qae_pricing
+            with st.spinner("Executing amplitude estimation on Aer…"):
+                res = qae_pricing.price(2.0, 1.9, 40 / 365, 0.05, 0.4, num_qubits=3, epsilon=0.01)
+                exact = bs.call_price(2.0, 1.9, 40 / 365, 0.05, 0.4)
+            a, b = st.columns(2)
+            a.metric("QAE estimate", f"{res['price']:.4f}")
+            b.metric("Closed-form", f"{exact:.4f}")
+            st.caption(f"Oracle queries: {res['n_oracle_queries']} · "
+                       f"CI [{res['ci'][0]:.4f}, {res['ci'][1]:.4f}]")
+        except Exception as e:
+            st.warning(f"Live quantum demo unavailable in this environment ({e}). "
+                       "The precomputed QAE-vs-MC comparison above still reflects real runs.")
     st.info("On a simulator QAE is slower in wall-clock; the O(1/N) advantage is asymptotic.")
 
 elif page == "Greeks Explorer":

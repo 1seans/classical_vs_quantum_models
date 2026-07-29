@@ -1,5 +1,8 @@
 import numpy as np
-from qiskit.primitives import Sampler
+try:
+    from qiskit.primitives import Sampler  # qiskit 1.x (V1 primitive)
+except ImportError:  # qiskit 2.x removed the V1 Sampler
+    from qiskit.primitives import StatevectorSampler as Sampler
 from qiskit_finance.circuit.library import LogNormalDistribution
 from qiskit_finance.applications.estimation import EuropeanCallPricing
 from qiskit_algorithms import IterativeAmplitudeEstimation
