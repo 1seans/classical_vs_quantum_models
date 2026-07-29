@@ -67,24 +67,29 @@ elif page == "Volatility Surfaces":
         if st.checkbox("Calibrate Heston to a ticker (experimental)"):
             from analytics import calibration
             tkr = st.text_input("Ticker", "AAPL")
+            st.caption("Runs Monte Carlo inside an optimizer — expect roughly a minute.")
             if st.button("Calibrate"):
-                fetched = calibration.fetch_market_smile(tkr)
-                if not fetched:
-                    st.warning("No usable option-chain data; staying on presets.")
-                else:
-                    Sc, Tc, mkt = fetched
-                    fit = calibration.calibrate(Sc, Tc, r, mkt)
-                    if fit is None:
-                        st.warning("Calibration did not converge; staying on presets.")
-                    else:
-                        st.success(f"Fit: κ={fit.kappa:.2f} θ={fit.theta:.3f} "
-                                   f"ξ={fit.xi:.2f} ρ={fit.rho:.2f} v₀={fit.v0:.3f}")
-                        ks = np.linspace(0.7 * Sc, 1.3 * Sc, 13)
-                        sm = heston.smile(Sc, Tc, r, fit, ks, n_sims=120_000, n_steps=80, seed=9)
-                        st.plotly_chart(viz.smile_chart(sm["strikes"],
-                                        {"calibrated": sm["implied_vols"],
-                                         "market": [iv for _, iv in mkt] + [None] * (len(ks) - len(mkt))}),
-                                        use_container_width=True)
+                try:
+                    with st.spinner(f"Fetching {tkr} option chain and calibrating Heston…"):
+                        fetched = calibration.fetch_market_smile(tkr)
+                        if not fetched:
+                            st.warning("No usable option-chain data; staying on presets.")
+                        else:
+                            Sc, Tc, mkt = fetched
+                            fit = calibration.calibrate(Sc, Tc, r, mkt)
+                            if fit is None:
+                                st.warning("Calibration did not converge; staying on presets.")
+                            else:
+                                ks = np.linspace(0.7 * Sc, 1.3 * Sc, 13)
+                                sm = heston.smile(Sc, Tc, r, fit, ks, n_sims=120_000, n_steps=80, seed=9)
+                                st.success(f"Fit: κ={fit.kappa:.2f} θ={fit.theta:.3f} "
+                                           f"ξ={fit.xi:.2f} ρ={fit.rho:.2f} v₀={fit.v0:.3f}")
+                                fig = viz.smile_chart(sm["strikes"], {"calibrated": sm["implied_vols"]})
+                                fig.add_trace(go.Scatter(x=[k for k, _ in mkt], y=[iv for _, iv in mkt],
+                                                         mode="markers", name="market (actual strikes)"))
+                                st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.warning(f"Calibration unavailable ({e}); staying on presets.")
 
 elif page == "Monte Carlo vs Closed-Form":
     st.subheader("Monte Carlo convergence to Black-Scholes")
