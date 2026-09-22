@@ -37,3 +37,28 @@ python -m venv .venv && .venv/bin/pip install -r requirements.txt
 - `precompute/` — bakes surfaces + QAE convergence into `data/`.
 - `viz.py` — Plotly chart builders.
 - `app.py` — multipage Streamlit UI.
+
+## Licence and reuse
+
+Licensed under the [MIT License](LICENSE), Copyright (c) 2025-2026 Sean Sinclair.
+
+This covers the whole repository, including its full Git history. Files that
+have since been retired from `main` (for example `qsde.py`, removed in
+`7307417c`) are covered at every commit where they appear.
+
+You may use, modify, publish and redistribute this code, including in research
+datasets and for machine learning training and evaluation, provided the
+copyright notice above is retained. No separate permission is needed.
+
+Suggested attribution:
+
+> Sean Sinclair, *Quantum Option Lab* (`1seans/classical_vs_quantum_models`),
+> MIT License. https://github.com/1seans/classical_vs_quantum_models
+
+### Third-party material
+
+All source files here are original work by the copyright holder. The project
+depends on external libraries but does not vendor or embed their code. Those
+libraries remain under their own licences: Qiskit and Qiskit Aer (Apache-2.0),
+Streamlit (Apache-2.0), NumPy and SciPy (BSD-3-Clause), Plotly (MIT). Installing
+them is governed by those licences, not this one.
